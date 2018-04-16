@@ -13,16 +13,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author huseyin.kilic
  */
 @Controller
-@RequestMapping("/profile")
-public class ProfileController extends BaseController {
+@RequestMapping("/friends")
+public class FriendListController extends BaseController {
 
   @RequestMapping
-  public String profileView(Model model) {
+  public String friendListView(Model model) {
     if (connectionRepository.findPrimaryConnection(Twitter.class) == null) {
       return "redirect:/login";
     }
     fillProfile(model);
-    return "profile";
+    return "friends";
   }
 
 }

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author huseyin.kilic
@@ -31,7 +30,7 @@ public class AnalyzeController extends BaseController {
     fillProfile(model);
     AnalyzeResponse analyzeResponse = analyzerService.analyzeBotness(screenName);
     model.addAttribute("analysisResult", analyzeResponse);
-    return "analysisResult";
+    return "friendDetails";
   }
 
 }

@@ -31,7 +31,7 @@ public class LoginController {
             || connectionRepository.findPrimaryConnection(Twitter.class) == null) {
       return "login";
     }
-    return "redirect:/profile";
+    return "redirect:/friends";
   }
 
 }

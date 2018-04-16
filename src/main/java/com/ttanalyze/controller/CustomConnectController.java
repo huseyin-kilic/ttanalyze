@@ -37,7 +37,7 @@ public class CustomConnectController extends ConnectController {
 
   @Override
   protected String connectedView(String providerId) {
-    return "redirect:/profile";
+    return "redirect:/friends";
   }
 
   @Override

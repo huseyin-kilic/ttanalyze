@@ -25,7 +25,7 @@
             class="oi oi-arrow-left"></span> Close</a>
     <div class="probootstrap-site-logo probootstrap-animate" data-animate-effect="fadeInLeft">
 
-        <a href="/profile" class="mb-2 d-block probootstrap-logo">TTAnalyze</a>
+        <a href="/friends" class="mb-2 d-block probootstrap-logo">TTAnalyze</a>
     </div>
     <div class="probootstrap-overflow">
 
@@ -46,11 +46,7 @@
             <div style="position: absolute; bottom: 350px;">
                 <ul>
                     <li class="probootstrap-animate active" data-animate-effect="fadeInLeft"><a
-                            href="/profile">Profile</a>
-                    </li>
-                    <li class="probootstrap-animate" data-animate-effect="fadeInLeft"><a href="/dashboard">Event
-                        Dashboard</a>
-                    </li>
+                            href="/friends">Friends</a>
                     </li>
                     <li class="probootstrap-animate" data-animate-effect="fadeInLeft"><a href="/contact">Contact</a>
                     </li>
@@ -59,7 +55,7 @@
         </nav>
 
         <footer class="probootstrap-aside-footer probootstrap-animate" data-animate-effect="fadeInLeft">
-            <p>&copy; 2017 TTAnalyze</a>. <br/> All Rights Reserved</p>
+            <p>&copy; 2018 TTAnalyze</a>. <br/> All Rights Reserved</p>
 
             <form action="/connect/twitter" method="post">
                 <input type="hidden" name="_method" value="delete">
@@ -75,29 +71,7 @@
 <main role="main" class="probootstrap-main js-probootstrap-main">
 
 
-    <form action="/profile" method="post">
-        <fieldset class="form-group">
-
-            <span th:text="${analysisResult.scores.get('english')}"></span>
-            <!--
-            <ul>
-                <li th:each="entry: ${analysisResult.user}">
-                    <span th:text="${entry.key}"></span> = <span th:text="${entry.value}"></span>
-                </li>
-            </ul>
-           <ul>
-                <li th:each="entry: ${analysisResult.scores)}">
-                    <span th:text="${entry.key}"></span> = <span th:text="${entry.value}"></span>
-                </li>
-            </ul>
-            <ul>
-                <li th:each="entry: ${analysisResult.categories}">
-                    <span th:text="${entry.key}"></span> = <span th:text="${entry.value}"></span>
-                </li>
-            </ul>
-            -->
-        </fieldset>
-    </form>
+    BODY
 
 </main>
 
