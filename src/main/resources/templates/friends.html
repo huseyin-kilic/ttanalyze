@@ -70,8 +70,17 @@
 
 <main role="main" class="probootstrap-main js-probootstrap-main">
 
-
-    BODY
+    <div class="card-columns">
+        <div th:each="friend : ${friends}">
+            <div class="card">
+                <a th:href="'/analyze/' + ${friend.screenName}">
+                    <p class="text-error text-center" th:text="${friend.screenName}" style="margin-bottom : 0px;"></p>
+                    <img class="card-img-top" th:src="${friend.profileImageUrl}" th:alt="xx"
+                         data-animate-effect="fadeIn">
+                </a>
+            </div>
+        </div>
+    </div>
 
 </main>
 

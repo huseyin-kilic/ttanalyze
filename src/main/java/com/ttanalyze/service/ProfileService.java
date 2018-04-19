@@ -37,7 +37,7 @@ public class ProfileService {
     TwitterProfile twitterProfile = twitter.userOperations().getUserProfile();
     String profileImageUrl = twitterProfile.getProfileImageUrl();
     if (profileImageUrl.contains("default")) {
-      profileImageUrl = "http://lorempixel.com/400/200/";
+      //profileImageUrl = "http://lorempixel.com/400/200/";
     }
 
     userProfile.setTwitterProfile(twitterProfile);
