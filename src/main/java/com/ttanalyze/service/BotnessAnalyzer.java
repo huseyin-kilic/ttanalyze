@@ -3,7 +3,7 @@ package com.ttanalyze.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.ttanalyze.domain.AnalyzeResponse;
+import com.ttanalyze.domain.BotnessAnalysisResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +39,9 @@ import java.util.TimeZone;
 
 @Service
 @PropertySource("classpath:twitter4j.properties")
-public class BotometerClient {
+public class BotnessAnalyzer {
 
-  private final static Logger logger = LoggerFactory.getLogger(BotometerClient.class);
+  private final static Logger logger = LoggerFactory.getLogger(BotnessAnalyzer.class);
 
   @Value("${mashape-key}")
   private String mashapeKey;
@@ -49,15 +49,15 @@ public class BotometerClient {
   private String consumer_key;
   @Value("${oauth.consumerSecret}")
   private String consumer_secret;
-  @Value("${oath.accessToken}")
+  @Value("${oauth.accessToken}")
   private String access_token;
-  @Value("${oath.accessTokenSecret}")
+  @Value("${oauth.accessTokenSecret}")
   private String access_token_secret;
 
   @Autowired
   private RestTemplate restTemplate;
 
-  public ResponseEntity<String> analyze(String screen_name) {
+  public BotnessAnalysisResult analyze(String screen_name) {
     if (StringUtils.isEmpty(screen_name)) {
       logger.error("screen_name argument incorrect, make sure populated.");
       return null;
@@ -69,9 +69,10 @@ public class BotometerClient {
       headers.set("X-Mashape-Key", this.mashapeKey);
       HttpEntity entity = new HttpEntity(analyzeRequest.toString(), headers);
 
-      return restTemplate
+      ResponseEntity<String> botnessAnalysisResponse = restTemplate
               .postForEntity("https://osome-botometer.p.mashape.com/2/check_account", entity, String.class);
-      
+
+      return buildBotnessAnalysisResult(botnessAnalysisResponse);
     } catch (HttpClientErrorException | TwitterException e) {
       logger.error(e.getMessage());
       e.printStackTrace();
@@ -79,6 +80,23 @@ public class BotometerClient {
     }
   }
 
+
+  private BotnessAnalysisResult buildBotnessAnalysisResult(ResponseEntity<String> responseEntity) {
+    BotnessAnalysisResult botnessAnalysisResult = new BotnessAnalysisResult();
+    try {
+      HashMap<String,Object> result =
+              new ObjectMapper().readValue(responseEntity.getBody(), HashMap.class);
+
+      botnessAnalysisResult.setCategories((HashMap<String, Double>)result.get("categories"));
+      botnessAnalysisResult.setScores((HashMap<String, Double>)result.get("scores"));
+      botnessAnalysisResult.setUser((HashMap<String, String>)result.get("user"));
+
+    } catch (Exception e) {
+      logger.debug("error reading analyze response");
+      return null;
+    }
+    return botnessAnalysisResult;
+  }
 
   private JsonObject prepareAnalyzeRequest(String screenName) throws TwitterException {
     Twitter twitter = getTwitterClient();

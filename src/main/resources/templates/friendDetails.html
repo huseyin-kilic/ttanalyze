@@ -70,7 +70,9 @@
 
 <main role="main" class="probootstrap-main js-probootstrap-main">
 
-    <span th:text="${analysisResult.scores.get('english')}"></span>
+    <span th:text="'Botness Score: ' + ${analysisResult.botness.scores.get('english')}"></span>
+    <span th:text="'Trollness Score: ' + ${analysisResult.trollness.totalScore}"></span>
+
 
 </main>
 

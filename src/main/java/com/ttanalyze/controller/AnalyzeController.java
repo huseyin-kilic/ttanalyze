@@ -3,7 +3,7 @@
  */
 package com.ttanalyze.controller;
 
-import com.ttanalyze.domain.AnalyzeResponse;
+import com.ttanalyze.domain.TotalAnalysisResult;
 import com.ttanalyze.service.AnalyzerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.social.twitter.api.Twitter;
@@ -28,8 +28,8 @@ public class AnalyzeController extends BaseController {
       return "redirect:/login";
     }
     fillProfile(model);
-    AnalyzeResponse analyzeResponse = analyzerService.analyzeBotness(screenName);
-    model.addAttribute("analysisResult", analyzeResponse);
+    TotalAnalysisResult analysisResult = analyzerService.analyze(screenName);
+    model.addAttribute("analysisResult", analysisResult);
     return "friendDetails";
   }
 

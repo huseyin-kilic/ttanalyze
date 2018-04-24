@@ -12,7 +12,7 @@ import java.util.Map;
  * @author huseyin.kilic
  */
 @Data
-public class AnalyzeResponse {
+public class BotnessAnalysisResult {
   private Map<String, Double> categories = new HashMap<>();
   private Map<String, Double> scores = new HashMap<>();
   private Map<String, String> user = new HashMap<>();
