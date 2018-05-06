@@ -11,4 +11,5 @@ import lombok.Data;
 @Data
 public class DeadnessAnalysisResult {
 
+  private double totalScore;
 }

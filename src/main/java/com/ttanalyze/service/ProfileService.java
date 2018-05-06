@@ -42,7 +42,6 @@ public class ProfileService {
 
     userProfile.setTwitterProfile(twitterProfile);
     userProfile.setProfileImageUrl(profileImageUrl);
-
     return userProfile;
   }
 

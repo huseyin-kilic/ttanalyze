@@ -11,6 +11,7 @@ import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
 import org.springframework.social.twitter.api.TwitterProfile;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -67,7 +68,7 @@ public class TrollnessAnalyzer {
   public TrollnessAnalysisResult analyze(String screenName) {
     TrollnessAnalysisResult trollnessAnalysisResult = new TrollnessAnalysisResult();
 
-    List<Tweet> tweetList = twitter.timelineOperations().getUserTimeline(screenName);
+    List<Tweet> tweetList = getTweets(screenName);
     trollnessAnalysisResult.setRetweetRatio(getRetweetRatio(tweetList));
     trollnessAnalysisResult.setLinkRatio(getLinkRatio(tweetList));
     trollnessAnalysisResult.setMentionRatio(getMentionRatio(tweetList));
@@ -81,7 +82,7 @@ public class TrollnessAnalyzer {
     //trollnessAnalysisResult.setInactiveFollowerRatio(getInactiveFollowersRatio(followerList));
 
 
-    if (calculateScoreForVerifiedAccounts && twitter.userOperations().getUserProfile(screenName).isVerified()) {
+    if (!calculateScoreForVerifiedAccounts && twitter.userOperations().getUserProfile(screenName).isVerified()) {
       trollnessAnalysisResult.setTotalScore(0);
       trollnessAnalysisResult.setVerified(true);
     } else {
@@ -90,6 +91,18 @@ public class TrollnessAnalyzer {
     return trollnessAnalysisResult;
   }
 
+  private List<Tweet> getTweets(String screenName) {
+    List<Tweet> timeline = new ArrayList<>();
+    List<Tweet> currentPage = twitter.timelineOperations().getUserTimeline(screenName, 200);
+    while (true) {
+      timeline.addAll(currentPage);
+      long lastTweetId = currentPage.get(currentPage.size()-1).getId();
+      currentPage = twitter.timelineOperations().getUserTimeline(screenName, 200, 0, lastTweetId);
+      if (currentPage.size() <= 1)
+        break;
+    }
+    return timeline;
+  }
 
   private List<TwitterProfile> getFollowers(String screenName) {
     CursoredList<TwitterProfile> followers = twitter.friendOperations().getFollowers(screenName);
@@ -123,34 +136,34 @@ public class TrollnessAnalyzer {
       totalScore +=  trollnessAnalysisResult.getInactiveFollowerRatio() * inactiveFollowerRatioCoefficient;
     }
 
-    return Math.round((totalScore/100d)*100)/100d;
+    return setPrecision(totalScore/100d);
   }
 
   private double getRetweetRatio(List<Tweet> tweetList) {
     double totalTweetCount = tweetList.size();
     double retweetCount = tweetList.stream().filter(Tweet::isRetweet).collect(Collectors.toList()).size();
-    return retweetCount / totalTweetCount;
+    return setPrecision(setPrecision(retweetCount / totalTweetCount));
   }
 
   private double getLinkRatio(List<Tweet> tweetList) {
     double totalTweetCount = tweetList.size();
     double tweetWithLinkCount = tweetList.stream().filter(tweet -> tweet.getText().contains("http"))
             .collect(Collectors.toList()).size();
-    return tweetWithLinkCount / totalTweetCount;
+    return setPrecision(tweetWithLinkCount / totalTweetCount);
   }
 
   private double getMentionRatio(List<Tweet> tweetList) {
     double totalTweetCount = tweetList.size();
     double tweetWithMentionCount = tweetList.stream().filter(tweet -> tweet.getEntities().getMentions().size() > 0)
             .collect(Collectors.toList()).size();
-    return tweetWithMentionCount / totalTweetCount;
+    return setPrecision(tweetWithMentionCount / totalTweetCount);
   }
 
   private double getDailyTweetRatio(String screenName) {
     TwitterProfile userProfile = twitter.userOperations().getUserProfile(screenName);
     long daysSinceCreation = TimeUnit.DAYS.convert(new Date().getTime() - userProfile.getCreatedDate().getTime(),
             TimeUnit.MILLISECONDS);
-    return userProfile.getStatusesCount() / daysSinceCreation;
+    return setPrecision((double)userProfile.getStatusesCount() / daysSinceCreation);
   }
 
   private double getNewFollowersRatio(List<TwitterProfile> followerList) {
@@ -159,7 +172,7 @@ public class TrollnessAnalyzer {
     double newFollowersCount = followerList.stream()
             .filter(follower -> follower.getCreatedDate().after(convert(now.minusDays(newFollowerDateThreshold))))
             .collect(Collectors.toList()).size();
-    return newFollowersCount / totalFollowersCount;
+    return setPrecision(newFollowersCount / totalFollowersCount);
   }
 
   private double getFollowersWithDifferentLanguageRatio(String userLanguage, List<TwitterProfile> followerList) {
@@ -167,7 +180,7 @@ public class TrollnessAnalyzer {
     double followersWithDifferentLanguageCount = followerList.stream()
             .filter(follower -> follower.getLanguage() != userLanguage)
             .collect(Collectors.toList()).size();
-    return followersWithDifferentLanguageCount / totalFollowersCount;
+    return setPrecision(followersWithDifferentLanguageCount / totalFollowersCount);
   }
 
   private double getInactiveFollowersRatio(List<TwitterProfile> followerList) {
@@ -177,12 +190,16 @@ public class TrollnessAnalyzer {
             .filter(follower -> twitter.timelineOperations().getUserTimeline(
                     follower.getScreenName()).size() < inactiveFollowerTweetThreshold)
             .collect(Collectors.toList()).size();
-    return inactiveFollowersCount / totalFollowersCount;
+    return setPrecision(inactiveFollowersCount / totalFollowersCount);
   }
 
   private Date convert(LocalDate localDate) {
     return Date.from(localDate.atStartOfDay()
             .atZone(ZoneId.systemDefault()).toInstant());
+  }
+
+  private double setPrecision(double d) {
+    return Math.round(d*100d)/100d;
   }
 
 }

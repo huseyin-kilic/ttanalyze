@@ -29,6 +29,7 @@ public class AnalyzeController extends BaseController {
     }
     fillProfile(model);
     TotalAnalysisResult analysisResult = analyzerService.analyze(screenName);
+    model.addAttribute("userProfile", twitter.userOperations().getUserProfile(screenName));
     model.addAttribute("analysisResult", analysisResult);
     return "friendDetails";
   }
