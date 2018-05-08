@@ -62,6 +62,7 @@ public class BotnessAnalyzer {
       logger.error("screen_name argument incorrect, make sure populated.");
       return null;
     }
+    ResponseEntity<String> botnessAnalysisResponse = null;
     try {
       JsonObject analyzeRequest = prepareAnalyzeRequest(screen_name);
 
@@ -69,15 +70,15 @@ public class BotnessAnalyzer {
       headers.set("X-Mashape-Key", this.mashapeKey);
       HttpEntity entity = new HttpEntity(analyzeRequest.toString(), headers);
 
-      ResponseEntity<String> botnessAnalysisResponse = restTemplate
+      botnessAnalysisResponse = restTemplate
               .postForEntity("https://osome-botometer.p.mashape.com/2/check_account", entity, String.class);
 
-      return buildBotnessAnalysisResult(botnessAnalysisResponse);
+      ;
     } catch (HttpClientErrorException | TwitterException e) {
       logger.error(e.getMessage());
       e.printStackTrace();
-      return null;
     }
+    return buildBotnessAnalysisResult(botnessAnalysisResponse);
   }
 
 
@@ -93,9 +94,22 @@ public class BotnessAnalyzer {
 
     } catch (Exception e) {
       logger.debug("error reading analyze response");
-      return null;
+      prepareEmptyResponse(botnessAnalysisResult);
     }
     return botnessAnalysisResult;
+  }
+
+  private void prepareEmptyResponse(BotnessAnalysisResult botnessAnalysisResult) {
+    botnessAnalysisResult.setCategories(new HashMap<>());
+    botnessAnalysisResult.getCategories().put("content",0d);
+    botnessAnalysisResult.getCategories().put("friend",0d);
+    botnessAnalysisResult.getCategories().put("network",0d);
+    botnessAnalysisResult.getCategories().put("sentiment",0d);
+    botnessAnalysisResult.getCategories().put("user",0d);
+    botnessAnalysisResult.setScores(new HashMap<>());
+    botnessAnalysisResult.getScores().put("english", 0d);
+    botnessAnalysisResult.getScores().put("universal", 0d);
+    botnessAnalysisResult.setUser(new HashMap<>());
   }
 
   private JsonObject prepareAnalyzeRequest(String screenName) throws TwitterException {
@@ -151,7 +165,7 @@ public class BotnessAnalyzer {
 
     for (;;) {
       int size = statuses.size();
-      Paging page = new Paging(pages++, 101);
+      Paging page = new Paging(pages++, 200);
       statuses.addAll(twitter.getUserTimeline(screen_name, page));
 
       if (statuses.size() == size || statuses.size() > max_tweets)

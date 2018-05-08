@@ -11,6 +11,7 @@ import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
 import org.springframework.social.twitter.api.TwitterProfile;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -93,7 +94,7 @@ public class TrollnessAnalyzer {
   private List<Tweet> getTweets(String screenName) {
     List<Tweet> timeline = new ArrayList<>();
     List<Tweet> currentPage = twitter.timelineOperations().getUserTimeline(screenName, 200);
-    while (true) {
+    while (!CollectionUtils.isEmpty(currentPage)) {
       timeline.addAll(currentPage);
       long lastTweetId = currentPage.get(currentPage.size()-1).getId();
       currentPage = twitter.timelineOperations().getUserTimeline(screenName, 200, 0, lastTweetId);
