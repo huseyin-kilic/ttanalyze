@@ -12,4 +12,7 @@ import lombok.Data;
 public class DeadnessAnalysisResult {
 
   private double totalScore;
+  private double recentTweetCount;
+  private double recentTweetRatio;
+
 }
