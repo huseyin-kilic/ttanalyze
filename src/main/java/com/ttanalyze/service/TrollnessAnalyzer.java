@@ -64,31 +64,38 @@ public class TrollnessAnalyzer {
   private double inactiveFollowerRatioThreshold;
   @Value("${coefficient.inactiveFollowerRatio}")
   private double inactiveFollowerRatioCoefficient;
+  @Value("#{'${searchPatterns}'.split(',')}")
+  private List<String> searchPatterns;
+  @Value("${coefficient.significantTweetCount}")
+  private long significantTweetCountCoefficient;
+  @Value("${threshold.significantTweetCount}")
+  private long significantTweetCountThreshold;
 
   public TrollnessAnalysisResult analyze(String screenName) {
-    TrollnessAnalysisResult trollnessAnalysisResult = new TrollnessAnalysisResult();
+    TrollnessAnalysisResult result = new TrollnessAnalysisResult();
 
     List<Tweet> tweetList = getTweets(screenName);
-    trollnessAnalysisResult.setRetweetRatio(getRetweetRatio(tweetList));
-    trollnessAnalysisResult.setLinkRatio(getLinkRatio(tweetList));
-    trollnessAnalysisResult.setMentionRatio(getMentionRatio(tweetList));
-    trollnessAnalysisResult.setDailyTweetRatio(getDailyTweetRatio(screenName));
+    result.setRetweetRatio(getRetweetRatio(tweetList));
+    result.setLinkRatio(getLinkRatio(tweetList));
+    result.setMentionRatio(getMentionRatio(tweetList));
+    result.setDailyTweetRatio(getDailyTweetRatio(screenName));
+    result.setSignificantTweetsCount(getSignificantTweetsCount(tweetList));
 
 
     List<TwitterProfile> followerList = getFollowers(screenName);
-    trollnessAnalysisResult.setNewFollowerRatio(getNewFollowersRatio(followerList));
-    trollnessAnalysisResult.setFollowersWithDifferentLanguageRatio(getFollowersWithDifferentLanguageRatio(
+    result.setNewFollowerRatio(getNewFollowersRatio(followerList));
+    result.setFollowersWithDifferentLanguageRatio(getFollowersWithDifferentLanguageRatio(
             twitter.userOperations().getUserProfile(screenName).getLanguage(), followerList));
     //trollnessAnalysisResult.setInactiveFollowerRatio(getInactiveFollowersRatio(followerList));
 
 
     if (!calculateScoreForVerifiedAccounts && twitter.userOperations().getUserProfile(screenName).isVerified()) {
-      trollnessAnalysisResult.setTotalScore(0);
-      trollnessAnalysisResult.setVerified(true);
+      result.setTotalScore(0);
+      result.setVerified(true);
     } else {
-      trollnessAnalysisResult.setTotalScore(calculateTrollnessScore(trollnessAnalysisResult));
+      result.setTotalScore(calculateTrollnessScore(result));
     }
-    return trollnessAnalysisResult;
+    return result;
   }
 
   private List<Tweet> getTweets(String screenName) {
@@ -114,26 +121,29 @@ public class TrollnessAnalyzer {
     return allFollowers;
   }
 
-  private double calculateTrollnessScore(TrollnessAnalysisResult trollnessAnalysisResult) {
+  private double calculateTrollnessScore(TrollnessAnalysisResult result) {
     double totalScore = 0;
 
-    if (trollnessAnalysisResult.getRetweetRatio() > retweetRatioThreshold) {
-      totalScore +=  trollnessAnalysisResult.getRetweetRatio() * retweetRatioCoefficient;
+    if (result.getRetweetRatio() > retweetRatioThreshold) {
+      totalScore +=  result.getRetweetRatio() * retweetRatioCoefficient;
     }
-    if (trollnessAnalysisResult.getLinkRatio() > linkRatioThreshold) {
-      totalScore +=  trollnessAnalysisResult.getLinkRatio() * linkRatioCoefficient;
+    if (result.getLinkRatio() > linkRatioThreshold) {
+      totalScore +=  result.getLinkRatio() * linkRatioCoefficient;
     }
-    if (trollnessAnalysisResult.getMentionRatio() > mentionRatioThreshold) {
-      totalScore +=  trollnessAnalysisResult.getMentionRatio() * mentionRatioCoefficient;
+    if (result.getMentionRatio() > mentionRatioThreshold) {
+      totalScore +=  result.getMentionRatio() * mentionRatioCoefficient;
     }
-    if (trollnessAnalysisResult.getDailyTweetRatio() > dailyTweetRatioThreshold) {
-      totalScore +=  trollnessAnalysisResult.getDailyTweetRatio() * dailyTweetRatioCoefficient;
+    if (result.getDailyTweetRatio() > dailyTweetRatioThreshold) {
+      totalScore +=  result.getDailyTweetRatio() * dailyTweetRatioCoefficient;
     }
-    if (trollnessAnalysisResult.getFollowersWithDifferentLanguageRatio() > followerWithDifferentLanguageRatioThreshold) {
-      totalScore +=  trollnessAnalysisResult.getFollowersWithDifferentLanguageRatio() * followerWithDifferentLanguageCoefficient;
+    if (result.getFollowersWithDifferentLanguageRatio() > followerWithDifferentLanguageRatioThreshold) {
+      totalScore +=  result.getFollowersWithDifferentLanguageRatio() * followerWithDifferentLanguageCoefficient;
     }
-    if (trollnessAnalysisResult.getInactiveFollowerRatio() > inactiveFollowerRatioThreshold) {
-      totalScore +=  trollnessAnalysisResult.getInactiveFollowerRatio() * inactiveFollowerRatioCoefficient;
+    if (result.getInactiveFollowerRatio() > inactiveFollowerRatioThreshold) {
+      totalScore +=  result.getInactiveFollowerRatio() * inactiveFollowerRatioCoefficient;
+    }
+    if (result.getSignificantTweetsCount() >= significantTweetCountThreshold) {
+      totalScore += ((double)result.getSignificantTweetsCount()) * significantTweetCountCoefficient / 100d;
     }
 
     return setPrecision(totalScore/100d);
@@ -191,6 +201,17 @@ public class TrollnessAnalyzer {
                     follower.getScreenName()).size() < inactiveFollowerTweetThreshold)
             .collect(Collectors.toList()).size();
     return setPrecision(inactiveFollowersCount / totalFollowersCount);
+  }
+
+  private int getSignificantTweetsCount(List<Tweet> tweetList) {
+    int significantTweetsCount = 0;
+    for (String searchPattern : searchPatterns) {
+      significantTweetsCount += tweetList.parallelStream()
+              .filter(tweet -> tweet.getText().toLowerCase().contains(searchPattern))
+              .collect(Collectors.toList())
+              .size();
+    }
+    return significantTweetsCount;
   }
 
   private Date convert(LocalDate localDate) {

@@ -71,8 +71,8 @@ public class DeadnessAnalyzer {
       totalScore += (1-result.getRecentTweetRatio()) * recentTweetRatioCoefficient;
     }
 
-    if (result.getSignificantMentionsCount() < significantMentionCountThreshold) {
-      totalScore += ((double)result.getSignificantMentionsCount()) * recentTweetRatioCoefficient / 100d;
+    if (result.getSignificantMentionsCount() >= significantMentionCountThreshold) {
+      totalScore += ((double)result.getSignificantMentionsCount()) * significantMentionCountCoefficient / 100d;
     }
 
     return setPrecision(totalScore/100d);

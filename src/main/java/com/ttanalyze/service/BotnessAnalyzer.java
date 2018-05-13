@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 @Service
@@ -88,8 +89,8 @@ public class BotnessAnalyzer {
       HashMap<String,Object> result =
               new ObjectMapper().readValue(responseEntity.getBody(), HashMap.class);
 
-      botnessAnalysisResult.setCategories((HashMap<String, Double>)result.get("categories"));
-      botnessAnalysisResult.setScores((HashMap<String, Double>)result.get("scores"));
+      botnessAnalysisResult.setCategories(setPrecision((HashMap<String, Double>)result.get("categories")));
+      botnessAnalysisResult.setScores(setPrecision((HashMap<String, Double>)result.get("scores")));
       botnessAnalysisResult.setUser((HashMap<String, String>)result.get("user"));
 
     } catch (Exception e) {
@@ -416,6 +417,14 @@ public class BotnessAnalyzer {
 
     return sdf.format(date);
   }
+
+  private HashMap setPrecision(HashMap<String, Double> map) {
+    HashMap<String, Double> result = new HashMap<>();
+    for (Map.Entry<String, Double> entry : map.entrySet())
+     result.put(entry.getKey(), Math.round(entry.getValue() *100d)/100d);
+    return result;
+  }
+
 }
 
 

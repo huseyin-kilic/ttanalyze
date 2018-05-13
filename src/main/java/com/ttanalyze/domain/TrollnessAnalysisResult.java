@@ -22,5 +22,5 @@ public class TrollnessAnalysisResult {
   private double followersWithDifferentLanguageRatio;
   private double inactiveFollowerRatio;
   private double dailyTweetRatio;
-
+  private int significantTweetsCount;
 }
